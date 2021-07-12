@@ -12,46 +12,78 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+# 项目根路由
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+import datetime
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(__file__, os.pardir))))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# 将狗自带的秘钥，将来如果需要加密处理可以用此密钥
 SECRET_KEY = '_v=m#)4!cnthzg1un9-jh-^^@yu_wtj-+ods#4o7u+l!e@cgu_'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# 如果项目部署上线后，将值改为False，并且不再对静态文件提供访问，静态文件需要放到nginx
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+# 允许哪些域名访问django项目访问
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users.apps.UsersConfig'
+
+    'rest_framework',
+
+    'users.apps.UsersConfig',
+    # 'request_response.apps.RequestResponseConfig'
+    'fastperfomance.apps.FastperfomanceConfig',
+    'fastperfomance.configures',
+    'fastperfomance.execute_logs',
+    'fastperfomance.interfaces',
+    'fastperfomance.interfaces_executive_outcomes',
+    'fastperfomance.projects',
+    'fastperfomance.project_interfaces',
+    'fastperfomance.reports',
+    'fastperfomance.system',
+    'fastperfomance.user'
 ]
 
+# 中间件 类似于flask的请求钩子
+# 在Django使用中间件，最主要是监听请求处理前  响应
+# 在请求被处理前， 所有中间件是至上而下去执行的
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+# 4.添加白名单
+# CORS_ORIGIN_ALLOW_ALL为True, 指定所有域名(ip)都可以访问后端接口, 默认为False
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = [
+    "http://127.0.0.1:8001"
+]
+# 允许跨域时携带Cookie, 默认为False
+CORS_ALLOW_CREDENTIALS = True
+# 工程文件下的url配置
 ROOT_URLCONF = 'Djangostudy.urls'
 
+# 模板文件配置项
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -68,24 +100,29 @@ TEMPLATES = [
         },
     },
 ]
-
+# 部署上线后工程的启动入口
 WSGI_APPLICATION = 'Djangostudy.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+
+# 数据库的配置项
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': 'localhost',
+        'PORT': 3306,
+        'USER': 'root',
+        'PASSWORD': '123456',
+        'NAME': 'performance',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
+# 密码验证的配置项
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -101,13 +138,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
+# 指定简体中文
+LANGUAGE_CODE = 'zh-hans'
+# 指定时区
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -115,8 +152,41 @@ USE_L10N = True
 
 USE_TZ = True
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 指定使用jwt token认证方式
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        # 会话认证
+        'rest_framework.authentication.SessionAuthentication',
+        # 基本认证（账号密码）
+        'rest_framework.authentication.BasicAuthentication',
+
+    ],
+    # 指定用于支持coreapi的Schema
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_RENDERER_CLASSES':  [
+        # b.列表中的元素是有优先级的，第一个元素优先级最高
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+}
+
+JWT_AUTH = {
+    # 指定处理登陆接口响应数据的参数
+    'JWT_RESPONSE_PAYLOAD_HANDLER':
+        'fastperfomance.utils.jwt_handler.jwt_response_payload_handler',
+    # 前端用户访问一些需要认证之后的接口，那么默认需要在请求头中携带参数，
+    # 请求key为Authorization，值为  前缀+空格+token值  例：JWT xxxxxxxxx
+    # 指定token有效期，默认为五分钟
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
+# 静态文件的路由前缀
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static_files'),
+    os.path.join(BASE_DIR, 'static_files/test'),
+]
