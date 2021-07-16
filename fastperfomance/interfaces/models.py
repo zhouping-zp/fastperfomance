@@ -18,6 +18,7 @@ class Interfaces(BaseModel):
     execution_time = models.IntegerField('执行时间', help_text='执行时间')
     latency_time = models.IntegerField('等待时间', help_text='等待时间')
     assertstr = models.CharField('断言', help_text='断言', max_length=50)
+    is_delete = models.IntegerField('是否删除', help_text='是否删除')
 
     class Meta:
         db_table = 'p_interfaces'
