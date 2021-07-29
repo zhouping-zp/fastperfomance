@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'fastperfomance.projects',
     'fastperfomance.project_interfaces',
     'fastperfomance.reports',
-    'fastperfomance.system',
+    'system',
     'fastperfomance.user'
 ]
 
@@ -115,7 +115,7 @@ DATABASES = {
         'PORT': 3306,
         'USER': 'root',
         'PASSWORD': '123456',
-        'NAME': 'performance',
+        'NAME': 'reset_performance',
     }
 }
 

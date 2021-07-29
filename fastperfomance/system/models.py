@@ -6,7 +6,7 @@ from fastperfomance.utils.base_models import BaseModel
 class System(BaseModel):
     id = models.AutoField(verbose_name='系统id', primary_key=True, help_text='系统id')
     name = models.CharField('系统名称', max_length=50, help_text='系统名称')
-    annotation = models.TextField('备注', help_text='备注', max_length=100)
+    annotation = models.TextField('备注', help_text='备注', max_length=100, null=True, blank=True)
 
     class Meta:
         db_table = 'p_system'
